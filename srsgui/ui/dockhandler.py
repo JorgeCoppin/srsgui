@@ -17,6 +17,9 @@ import matplotlib.image as mpimg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
+from srsgui.ui.customwidgets import SwitchboardWidget, LogWidget
+from srsgui.hardware.controller import SwitchboardController
+
 from .commandhandler import CommandHandler as TerminalCommandHandler
 from .commandtree.commandhandler import CommandHandler as CommandTreeCommandHandler
 
@@ -78,6 +81,8 @@ class DockHandler(object):
         self.init_figure_dock(self.DefaultFigureName)
         self.init_terminal()
         self.init_console()
+        self.init_switchboard_dock()
+        self.init_log_dock()
         self.init_inst_dock('instrument info')
         list(self.dock_dict.values())[-1].hide()
 
@@ -165,6 +170,40 @@ class DockHandler(object):
 
         except Exception as e:
             logger.error(e)
+
+    def init_switchboard_dock(self, name="Switchboard Control"):
+        print("[DEBUG] Initializing Switchboard Dock...")
+
+        from srsgui.hardware.controller import SwitchboardController
+        controller = SwitchboardController()
+        widget = SwitchboardWidget(controller)
+
+        dock = QDockWidget(name, self.parent)
+        dock.setWidget(widget)
+        dock.setMinimumSize(300, 250)
+        self.parent.addDockWidget(Qt.RightDockWidgetArea, dock)
+        self.dock_dict[name] = dock
+
+        action_dock = QAction(self.parent)
+        action_dock.setText(name)
+        self.parent.menu_Docks.addAction(action_dock)
+
+        print("[DEBUG] Switchboard Dock added successfully.")
+
+    def init_log_dock(self, name="Switchboard Log"):
+        try:
+            widget = LogWidget()
+            dock = QDockWidget(name, self.parent)
+            dock.setWidget(widget)
+            dock.setMinimumSize(300, 200)
+            self.parent.addDockWidget(Qt.RightDockWidgetArea, dock)
+            self.dock_dict[name] = dock
+
+            action_dock = QAction(self.parent)
+            action_dock.setText(name)
+            self.parent.menu_Docks.addAction(action_dock)
+        except Exception as e:
+            print("[ERROR] Failed to init Log Dock:", e)
 
     def init_inst_dock(self, name):
         try:
